@@ -1,9 +1,6 @@
 --[[
-    RIVALS SPOOFER V11 - WITH FLY FEATURE
-    - Website keys work
-    - Premium = fly feature
-    - Themes: Purple, Black, Blue, Gold, Pink, Cyber
-    - H to toggle UI • ESC to close
+    RIVALS SPOOFER V12 - SIMPLEST VERSION
+    Keys: FREE = Basic, PREMIUM-3673111-NEVERTYPETHIS = Premium
 ]]
 
 -- ============================================
@@ -23,7 +20,6 @@ local Themes = {
         button1 = Color3.fromRGB(160, 80, 255),
         button2 = Color3.fromRGB(200, 100, 255),
         status = Color3.fromRGB(160, 80, 255),
-        glow = Color3.fromRGB(160, 80, 255),
     },
     Black = {
         name = "⬛ Black",
@@ -37,7 +33,6 @@ local Themes = {
         button1 = Color3.fromRGB(80, 80, 80),
         button2 = Color3.fromRGB(100, 100, 100),
         status = Color3.fromRGB(200, 200, 200),
-        glow = Color3.fromRGB(100, 100, 100),
     },
     Blue = {
         name = "🔵 Blue",
@@ -51,7 +46,6 @@ local Themes = {
         button1 = Color3.fromRGB(50, 120, 255),
         button2 = Color3.fromRGB(80, 150, 255),
         status = Color3.fromRGB(50, 120, 255),
-        glow = Color3.fromRGB(50, 120, 255),
     },
     Gold = {
         name = "⭐ Gold",
@@ -65,7 +59,6 @@ local Themes = {
         button1 = Color3.fromRGB(255, 200, 50),
         button2 = Color3.fromRGB(255, 215, 0),
         status = Color3.fromRGB(255, 200, 50),
-        glow = Color3.fromRGB(255, 200, 50),
     },
     Pink = {
         name = "💗 Pink",
@@ -79,7 +72,6 @@ local Themes = {
         button1 = Color3.fromRGB(255, 80, 150),
         button2 = Color3.fromRGB(255, 120, 180),
         status = Color3.fromRGB(255, 80, 150),
-        glow = Color3.fromRGB(255, 80, 150),
     },
     Cyber = {
         name = "💚 Cyber",
@@ -93,175 +85,41 @@ local Themes = {
         button1 = Color3.fromRGB(0, 255, 200),
         button2 = Color3.fromRGB(0, 220, 180),
         status = Color3.fromRGB(0, 255, 200),
-        glow = Color3.fromRGB(0, 255, 200),
     },
 }
 
 local currentTheme = "Purple"
 
 -- ============================================
--- KEY SYSTEM - ACCEPTS WEBSITE KEYS
+-- SIMPLE KEY SYSTEM - JUST TWO KEYS
 -- ============================================
 
-local KeySystem = {
-    HardcodedKeys = {
-        ["FREE"] = "Basic",
-        ["VIP-KEY-001"] = "VIP",
-        ["ULTRA-KEY-999"] = "Ultra",
-        ["LEGEND-777"] = "Legendary",
-    },
-    WebsiteKeys = {},
-    UsedKeys = {},
-    IsAuthenticated = false,
-    CurrentTier = nil
-}
+local authenticated = false
+local currentTier = nil
+local premiumUsed = false
 
-local function IsWebsiteKeyFormat(key)
-    if type(key) ~= "string" then return false end
-    return string.match(key, "^%u%u%u%u%-%u%u%u%u%-%u%u%u%u%-%u%u%u%u$") ~= nil
-end
-
-function KeySystem:ValidateKey(key)
+function ValidateKey(key)
     key = string.upper(key)
     
-    local tier = self.HardcodedKeys[key]
-    if tier then
-        self.IsAuthenticated = true
-        self.CurrentTier = tier
-        return true, "✅ " .. tier .. " access granted!"
+    -- FREE key
+    if key == "FREE" then
+        authenticated = true
+        currentTier = "Basic"
+        return true, "✅ Free access granted! 🟢 Basic Tier"
     end
     
-    if IsWebsiteKeyFormat(key) then
-        if self.UsedKeys[key] then
-            return false, "❌ This key has already been used!"
-        end
-        self.UsedKeys[key] = true
-        self.WebsiteKeys[key] = "Premium"
-        self.IsAuthenticated = true
-        self.CurrentTier = "Premium"
-        return true, "⭐ Premium key activated! All features unlocked!"
-    end
-    
+    -- PREMIUM key (only works once)
     if key == "PREMIUM-3673111-NEVERTYPETHIS" then
-        local chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-        local newKey = ""
-        for i = 1, 16 do
-            if i > 1 and i % 4 == 1 then newKey = newKey .. "-" end
-            newKey = newKey .. string.sub(chars, math.random(1, #chars), math.random(1, #chars))
+        if premiumUsed then
+            return false, "❌ Premium key already used!"
         end
-        self.UsedKeys[newKey] = true
-        self.WebsiteKeys[newKey] = "Premium"
-        self.IsAuthenticated = true
-        self.CurrentTier = "Premium"
-        return true, "⭐ Premium key generated: " .. newKey .. " (copy this!)"
+        premiumUsed = true
+        authenticated = true
+        currentTier = "Premium"
+        return true, "⭐ Premium access granted! All features unlocked!"
     end
     
     return false, "❌ Invalid key! Try: FREE"
-end
-
--- ============================================
--- FLY FEATURE (Premium only)
--- ============================================
-
-local Fly = {
-    Enabled = false,
-    Speed = 50,
-    BodyVelocity = nil,
-    BodyGyro = nil,
-    Connections = {}
-}
-
-function Fly:Toggle()
-    local player = game:GetService("Players").LocalPlayer
-    if not player or not player.Character then return end
-    
-    local humanoid = player.Character:FindFirstChild("Humanoid")
-    if not humanoid then return end
-    
-    -- If flying, land
-    if self.Enabled then
-        self.Enabled = false
-        if self.BodyVelocity then self.BodyVelocity:Destroy() end
-        if self.BodyGyro then self.BodyGyro:Destroy() end
-        for _, conn in ipairs(self.Connections) do
-            if conn then conn:Disconnect() end
-        end
-        self.Connections = {}
-        humanoid.PlatformStand = false
-        print("🛬 Landed")
-        return
-    end
-    
-    -- Start flying
-    self.Enabled = true
-    humanoid.PlatformStand = true
-    
-    local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
-    if not rootPart then return end
-    
-    -- BodyVelocity for movement
-    self.BodyVelocity = Instance.new("BodyVelocity")
-    self.BodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-    self.BodyVelocity.Velocity = Vector3.new(0, 0, 0)
-    self.BodyVelocity.Parent = rootPart
-    
-    -- BodyGyro for orientation
-    self.BodyGyro = Instance.new("BodyGyro")
-    self.BodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
-    self.BodyGyro.CFrame = rootPart.CFrame
-    self.BodyGyro.Parent = rootPart
-    
-    -- Movement loop
-    local runService = game:GetService("RunService")
-    local userInput = game:GetService("UserInputService")
-    
-    local moveConnection = runService.RenderStepped:Connect(function()
-        if not self.Enabled or not rootPart or not self.BodyVelocity then return end
-        
-        local moveDirection = Vector3.new(0, 0, 0)
-        
-        -- WASD / Arrow keys
-        if userInput:IsKeyDown(Enum.KeyCode.W) then
-            moveDirection = moveDirection + rootPart.CFrame.LookVector
-        end
-        if userInput:IsKeyDown(Enum.KeyCode.S) then
-            moveDirection = moveDirection - rootPart.CFrame.LookVector
-        end
-        if userInput:IsKeyDown(Enum.KeyCode.A) then
-            moveDirection = moveDirection - rootPart.CFrame.RightVector
-        end
-        if userInput:IsKeyDown(Enum.KeyCode.D) then
-            moveDirection = moveDirection + rootPart.CFrame.RightVector
-        end
-        
-        -- Space to go up
-        if userInput:IsKeyDown(Enum.KeyCode.Space) then
-            moveDirection = moveDirection + Vector3.new(0, 1, 0)
-        end
-        -- Left Shift to go down
-        if userInput:IsKeyDown(Enum.KeyCode.LeftShift) then
-            moveDirection = moveDirection + Vector3.new(0, -1, 0)
-        end
-        
-        if moveDirection.Magnitude > 0 then
-            moveDirection = moveDirection.Unit * self.Speed
-        end
-        
-        self.BodyVelocity.Velocity = moveDirection
-        self.BodyGyro.CFrame = rootPart.CFrame
-    end)
-    table.insert(self.Connections, moveConnection)
-    
-    -- Keybind: X to toggle fly quickly
-    local keyConnection = userInput.InputBegan:Connect(function(input, processed)
-        if processed then return end
-        if input.KeyCode == Enum.KeyCode.X and input.UserInputType == Enum.UserInputType.Keyboard then
-            self:Toggle()
-        end
-    end)
-    table.insert(self.Connections, keyConnection)
-    
-    print("✈️ Flying enabled! WASD to move, Space up, Shift down, X to toggle")
 end
 
 -- ============================================
@@ -292,7 +150,102 @@ local function SpoofDisplayName(newName)
 end
 
 -- ============================================
--- UI BUILDER
+-- FLY FEATURE (Premium only)
+-- ============================================
+
+local Fly = {
+    Enabled = false,
+    Speed = 50,
+    BodyVelocity = nil,
+    BodyGyro = nil,
+    Connections = {}
+}
+
+function Fly:Toggle()
+    local player = game:GetService("Players").LocalPlayer
+    if not player or not player.Character then return end
+    
+    local humanoid = player.Character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+    
+    if self.Enabled then
+        self.Enabled = false
+        if self.BodyVelocity then self.BodyVelocity:Destroy() end
+        if self.BodyGyro then self.BodyGyro:Destroy() end
+        for _, conn in ipairs(self.Connections) do
+            if conn then conn:Disconnect() end
+        end
+        self.Connections = {}
+        humanoid.PlatformStand = false
+        print("🛬 Landed")
+        return
+    end
+    
+    self.Enabled = true
+    humanoid.PlatformStand = true
+    
+    local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+    
+    self.BodyVelocity = Instance.new("BodyVelocity")
+    self.BodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+    self.BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    self.BodyVelocity.Parent = rootPart
+    
+    self.BodyGyro = Instance.new("BodyGyro")
+    self.BodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+    self.BodyGyro.CFrame = rootPart.CFrame
+    self.BodyGyro.Parent = rootPart
+    
+    local runService = game:GetService("RunService")
+    local userInput = game:GetService("UserInputService")
+    
+    local moveConnection = runService.RenderStepped:Connect(function()
+        if not self.Enabled or not rootPart or not self.BodyVelocity then return end
+        
+        local moveDirection = Vector3.new(0, 0, 0)
+        
+        if userInput:IsKeyDown(Enum.KeyCode.W) then
+            moveDirection = moveDirection + rootPart.CFrame.LookVector
+        end
+        if userInput:IsKeyDown(Enum.KeyCode.S) then
+            moveDirection = moveDirection - rootPart.CFrame.LookVector
+        end
+        if userInput:IsKeyDown(Enum.KeyCode.A) then
+            moveDirection = moveDirection - rootPart.CFrame.RightVector
+        end
+        if userInput:IsKeyDown(Enum.KeyCode.D) then
+            moveDirection = moveDirection + rootPart.CFrame.RightVector
+        end
+        if userInput:IsKeyDown(Enum.KeyCode.Space) then
+            moveDirection = moveDirection + Vector3.new(0, 1, 0)
+        end
+        if userInput:IsKeyDown(Enum.KeyCode.LeftShift) then
+            moveDirection = moveDirection + Vector3.new(0, -1, 0)
+        end
+        
+        if moveDirection.Magnitude > 0 then
+            moveDirection = moveDirection.Unit * self.Speed
+        end
+        
+        self.BodyVelocity.Velocity = moveDirection
+        self.BodyGyro.CFrame = rootPart.CFrame
+    end)
+    table.insert(self.Connections, moveConnection)
+    
+    local keyConnection = userInput.InputBegan:Connect(function(input, processed)
+        if processed then return end
+        if input.KeyCode == Enum.KeyCode.X and input.UserInputType == Enum.UserInputType.Keyboard then
+            self:Toggle()
+        end
+    end)
+    table.insert(self.Connections, keyConnection)
+    
+    print("✈️ Flying enabled! WASD to move, Space up, Shift down, X to toggle")
+end
+
+-- ============================================
+-- APPLY THEME
 -- ============================================
 
 local function ApplyTheme(frame, theme)
@@ -354,11 +307,11 @@ local function CreateMainUI()
     screenGui.Parent = gui
     
     local theme = Themes[currentTheme]
-    local isPremium = KeySystem.CurrentTier == "Premium"
+    local isPremium = currentTier == "Premium"
     
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 380, 0, 370)
-    frame.Position = UDim2.new(0.5, -190, 0.5, -185)
+    frame.Size = UDim2.new(0, 380, 0, 390)
+    frame.Position = UDim2.new(0.5, -190, 0.5, -195)
     frame.BackgroundColor3 = theme.background
     frame.BackgroundTransparency = theme.backgroundTransparency
     frame.BorderSizePixel = 0
@@ -397,14 +350,14 @@ local function CreateMainUI()
     local sub = Instance.new("TextLabel")
     sub.Size = UDim2.new(1, 0, 0, 20)
     sub.Position = UDim2.new(0, 0, 0.12, 0)
-    sub.Text = "Tier: " .. (KeySystem.CurrentTier or "Not Authenticated")
+    sub.Text = "Tier: " .. (currentTier or "Not Authenticated")
     sub.TextColor3 = theme.text
     sub.BackgroundTransparency = 1
     sub.Font = Enum.Font.Gotham
     sub.TextSize = 13
     sub.Parent = frame
     
-    -- ==== NAME INPUT ====
+    -- NAME INPUT
     local nameBox = Instance.new("TextBox")
     nameBox.Size = UDim2.new(0.6, 0, 0, 30)
     nameBox.Position = UDim2.new(0.05, 0, 0.18, 0)
@@ -435,7 +388,7 @@ local function CreateMainUI()
     nBtnCorner.CornerRadius = UDim.new(0, 8)
     nBtnCorner.Parent = nameBtn
     
-    -- ==== DISPLAY NAME INPUT ====
+    -- DISPLAY NAME INPUT
     local displayBox = Instance.new("TextBox")
     displayBox.Size = UDim2.new(0.6, 0, 0, 30)
     displayBox.Position = UDim2.new(0.05, 0, 0.30, 0)
@@ -466,7 +419,7 @@ local function CreateMainUI()
     dBtnCorner.CornerRadius = UDim.new(0, 8)
     dBtnCorner.Parent = displayBtn
     
-    -- ==== FLY BUTTON (Premium only) ====
+    -- FLY BUTTON (Premium only)
     local flyBtn = Instance.new("TextButton")
     flyBtn.Size = UDim2.new(0.9, 0, 0, 35)
     flyBtn.Position = UDim2.new(0.05, 0, 0.44, 0)
@@ -493,7 +446,7 @@ local function CreateMainUI()
     flyStatus.TextSize = 11
     flyStatus.Parent = frame
     
-    -- ==== SETTINGS BUTTON ====
+    -- SETTINGS BUTTON
     local settingsBtn = Instance.new("TextButton")
     settingsBtn.Size = UDim2.new(0.45, 0, 0, 30)
     settingsBtn.Position = UDim2.new(0.05, 0, 0.65, 0)
@@ -508,7 +461,7 @@ local function CreateMainUI()
     sBtnCorner.CornerRadius = UDim.new(0, 8)
     sBtnCorner.Parent = settingsBtn
     
-    -- ==== STATUS ====
+    -- STATUS
     local status = Instance.new("TextLabel")
     status.Name = "Status"
     status.Size = UDim2.new(0.9, 0, 0, 20)
@@ -520,10 +473,7 @@ local function CreateMainUI()
     status.TextSize = 11
     status.Parent = frame
     
-    -- ============================================
-    -- SETTINGS FRAME
-    -- ============================================
-    
+    -- ===== SETTINGS FRAME =====
     local settingsFrame = Instance.new("Frame")
     settingsFrame.Name = "SettingsFrame"
     settingsFrame.Size = UDim2.new(0.9, 0, 0, 0)
@@ -593,12 +543,10 @@ local function CreateMainUI()
     closeSettings.MouseButton1Click:Connect(function()
         settingsFrame.Visible = false
         settingsFrame.Size = UDim2.new(0.9, 0, 0, 0)
-        frame.Size = UDim2.new(0, 380, 0, 370)
+        frame.Size = UDim2.new(0, 380, 0, 390)
     end)
     
-    -- ============================================
-    -- BUTTON EVENTS
-    -- ============================================
+    -- ===== BUTTON EVENTS =====
     
     nameBtn.MouseButton1Click:Connect(function()
         if nameBox.Text ~= "" then
@@ -616,7 +564,6 @@ local function CreateMainUI()
         end
     end)
     
-    -- Fly button
     flyBtn.MouseButton1Click:Connect(function()
         if not isPremium then
             status.Text = "❌ Fly feature requires Premium tier!"
@@ -628,25 +575,21 @@ local function CreateMainUI()
         status.Text = Fly.Enabled and "✈️ Flying! WASD, Space up, Shift down" or "🛬 Landed!"
     end)
     
-    -- Settings toggle
     local settingsOpen = false
     settingsBtn.MouseButton1Click:Connect(function()
         settingsOpen = not settingsOpen
         settingsFrame.Visible = settingsOpen
         if settingsOpen then
             settingsFrame.Size = UDim2.new(0.9, 0, 0, 140)
-            frame.Size = UDim2.new(0, 380, 0, 510)
+            frame.Size = UDim2.new(0, 380, 0, 530)
             ApplyTheme(settingsFrame, currentTheme)
         else
             settingsFrame.Size = UDim2.new(0.9, 0, 0, 0)
-            frame.Size = UDim2.new(0, 380, 0, 370)
+            frame.Size = UDim2.new(0, 380, 0, 390)
         end
     end)
     
-    -- ============================================
-    -- H KEY TOGGLE
-    -- ============================================
-    
+    -- ===== H KEY TOGGLE =====
     local visible = true
     local userInput = game:GetService("UserInputService")
     userInput.InputBegan:Connect(function(input, processed)
@@ -654,7 +597,6 @@ local function CreateMainUI()
         if input.KeyCode == Enum.KeyCode.H then
             visible = not visible
             screenGui.Enabled = visible
-            print("[UI] Toggled: " .. (visible and "Visible" or "Hidden"))
         end
     end)
     
@@ -664,8 +606,6 @@ local function CreateMainUI()
             screenGui:Destroy()
         end
     end)
-    
-    print("✅ UI loaded! Press H to toggle, ESC to close")
 end
 
 -- ============================================
@@ -783,3 +723,52 @@ local function CreateKeyUI()
     hint.BackgroundTransparency = 1
     hint.Font = Enum.Font.Gotham
     hint.TextSize = 10
+    hint.Parent = frame
+    
+    authBtn.MouseButton1Click:Connect(function()
+        local key = keyBox.Text:upper()
+        if key == "" then
+            statusLabel.Text = "⚠️ Please enter a key"
+            statusLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
+            return
+        end
+        
+        local valid, msg = ValidateKey(key)
+        if valid then
+            statusLabel.Text = msg
+            statusLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
+            wait(0.5)
+            screenGui:Destroy()
+            CreateMainUI()
+        else
+            statusLabel.Text = msg
+            statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+        end
+    end)
+    
+    keyBox.FocusLost:Connect(function(enterPressed)
+        if enterPressed then authBtn.MouseButton1Click:Fire() end
+    end)
+end
+
+-- ============================================
+-- START
+-- ============================================
+
+local player = game:GetService("Players").LocalPlayer
+if not player then
+    game:GetService("Players").PlayerAdded:Wait()
+    player = game:GetService("Players").LocalPlayer
+end
+
+wait(0.5)
+CreateKeyUI()
+
+print([[
+╔══════════════════════════════════════════╗
+║   🔑 SPOOFER V12 LOADED                 ║
+║   Keys: FREE or PREMIUM-3673111-...     ║
+║   Premium = Fly (X to toggle)           ║
+║   Press H to toggle • ESC to close      ║
+╚══════════════════════════════════════════╝
+]])
