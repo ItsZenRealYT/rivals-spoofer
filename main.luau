@@ -1,15 +1,7 @@
 --[[
-    RIVALS SPOOFER V7 - WITH TIER EMOJIS
-    Features:
-    - Tier indicators with emojis
-    - Global Name Spoofer
-    - Display Name Spoofer
-    - Avatar Changer (by player ID)
-    - Tier-based features
-    - Toggle UI with H
-    - Auto-spoof on join
-    - Preset saves (Ultra+)
-    - God Mode (Legendary)
+    RIVALS SPOOFER V7 - STANDALONE
+    Copy this ENTIRE script into your executor
+    No HTTP requests needed
 ]]
 
 -- ============================================
@@ -390,11 +382,7 @@ function UIManager:CreateFancyUI()
     
     -- ===== INPUT FIELDS =====
     local function CreateInputField(parent, yPos, labelText, placeholderText, buttonText, buttonColor, tierLock)
-        -- Lock icon for tier-locked features
-        local lockIcon = ""
-        if tierLock then
-            lockIcon = "🔒 "
-        end
+        local lockIcon = tierLock and "🔒 " or ""
         
         local label = Instance.new("TextLabel")
         label.Size = UDim2.new(0.25, 0, 0, 30)
@@ -544,7 +532,6 @@ function UIManager:CreateFancyUI()
     -- SECTION 4: UI EVENTS
     -- ============================================
     
-    -- Helper function to update status
     local function UpdateStatus(text, isError)
         if isError then
             statusLabel.Text = "❌ " .. text
@@ -797,18 +784,4 @@ local function CreateKeyUI()
     legendText.Text = "🟢Basic  💎VIP  🔥Ultra  👑Legendary"
     legendText.TextColor3 = Color3.fromRGB(150, 150, 180)
     legendText.BackgroundTransparency = 1
-    legendText.Font = Enum.Font.Gotham
-    legendText.TextSize = 11
-    legendText.Parent = legendFrame
-    
-    local closeBtn = Instance.new("TextButton")
-    closeBtn.Size = UDim2.new(0, 30, 0, 30)
-    closeBtn.Position = UDim2.new(1, -35, 0, 5)
-    closeBtn.Text = "✕"
-    closeBtn.BackgroundTransparency = 1
-    closeBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-    closeBtn.Font = Enum.Font.Gotham
-    closeBtn.TextSize = 18
-    closeBtn.Parent = frame
-    
-    -- Events
+    legendText.Font = Enum.Font.Goth
